@@ -1,0 +1,3 @@
+[submodule "SIDMCommon"]
+	path = SIDMCommon
+	url = https://github.com/cgannonucm/SIDMCommon
