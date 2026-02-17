@@ -7,7 +7,7 @@ from subscript.scripts.nodes import nodedata
 import h5py
 from subscript.tabulatehdf5 import  tabulate_trees
 from subscript.defaults import ParamKeys
-from mpl_standardize import mpl_params_update
+from analysis_scripts.mpl_standardize import mpl_params_update
 
 from sidmcommon.nsphere_suite import summarize_nsphere_suite
 from sidmcommon.galacticus import get_nodedata_byids
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     mpl_params_update()
 
     path_galacticus = 'data/galacticus/mh1e13_z05_test.hdf5'
-    simdir = 'data/nsphere/mh1e13_z05_test'
+    simdir = 'data/NSphere/NSphere-galacticus-hr-cdm-test'
     path_out = 'out/plots/massratio_histogram.png'
 
     fig, ax = plt.subplots(figsize=(9,6))
