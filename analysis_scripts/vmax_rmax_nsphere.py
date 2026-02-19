@@ -1,7 +1,6 @@
 import numpy as np
 from sidmcommon.const import Const
 
-
 def _vc2_profile(snap):
     """Squared circular velocity profile for a single snapshot."""
     radii = snap['R']         # kpc
@@ -24,7 +23,6 @@ def get_nsphere_vmax(data):
     -------
     vmax : ndarray, shape (nsteps,)
         V_max in kpc/Myr at each snapshot.
-        Multiply by 978.5 to convert to km/s.
     """
     vmax = np.zeros(len(data))
     for isnap, snap in enumerate(data):
@@ -75,8 +73,7 @@ if __name__ == '__main__':
     del particles
 
     # kpc/Myr → km/s conversion
-    KPC_MYR_TO_KMS = 978.5
-    vmax_kms = vmax * KPC_MYR_TO_KMS
+    vmax_kms = vmax * Const.KPC_MYR_TO_KMS
 
     os.makedirs('out/plots', exist_ok=True)
 
