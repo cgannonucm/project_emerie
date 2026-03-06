@@ -14,14 +14,15 @@ from sidmcommon.galacticus import get_nodedata_byids
 
 def plot_massratio_histogram(ax, simdir, path_galacticus_out, 
                              output_file=None, label=None, 
-                             xlim=(1e-2, 1e1), plot_kwargs=None):
+                             xlim=(1e-2, 1e1), plot_kwargs=None, 
+                             refresh=False, only_direct_infallers=False):
     plot_kwargs = plot_kwargs if plot_kwargs is not None else {}
 
     if output_file is None:
         output_file = 'out/nsphere_summary/summary_temp'
 
     # Summarize nsphere output, disable caching to ensure we get the latest data
-    summary = summarize_nsphere_suite(simdir, output_file, refresh=False)
+    summary = summarize_nsphere_suite(simdir, output_file, refresh=refresh)
 
     file_galacticus = h5py.File(path_galacticus_out, 'r')
 
@@ -31,10 +32,10 @@ def plot_massratio_histogram(ax, simdir, path_galacticus_out,
     nfilter = nf.logical_and(nfilter, 
                                 nf.subhalos_valid(None, 1e9, 1e10, ParamKeys.mass_basic))                            
 
-
-    mass_bound_gal = nodedata(tree_galacticus, [ParamKeys.mass_bound], nfilter=nfilter)
-
+    
     mass_bound_gal = get_nodedata_byids(list(summary.keys()), tree_galacticus, ParamKeys.mass_bound)
+    depth_max = get_nodedata_byids(list(summary.keys()), tree_galacticus, ParamKeys.hierarchy_level_maximum)
+
     
     massratio = []
     massratio_lr = []
@@ -42,14 +43,14 @@ def plot_massratio_histogram(ax, simdir, path_galacticus_out,
     halo_ids = []
 
     for halo_id, val in summary.items():
+        if depth_max[halo_id] > 1 and only_direct_infallers:
+            continue
         massratio.append(val['massbound'][-1] / mass_bound_gal[halo_id])
         massratio_lr.append(summary[halo_id]['massbound'][-1] / mass_bound_gal[halo_id])        
         halo_ids.append(halo_id)
 
     massratio = np.array(massratio)
     massratio_lr = np.array(massratio_lr)
-
-
     ax.hist(massratio, bins=np.geomspace(xlim[0], xlim[1], 20), alpha=0.5, label=label, **plot_kwargs)
     ax.set_xlabel('Final Bound Mass Ratio (NSphere / Galacticus)')
     ax.set_ylabel('Count')
@@ -58,12 +59,13 @@ def plot_massratio_histogram(ax, simdir, path_galacticus_out,
 if __name__ == "__main__":
     mpl_params_update()
 
-    path_galacticus = 'data/galacticus/mh1e13_z05_test.hdf5'
+    path_galacticus = 'data/galacticus/galacticus-v2/mh1e13_z05_rmax_vmax.hdf5'
     simdir = 'data/NSphere/NSphere-galacticus-hr-cdm-test'
     path_out = 'out/plots/massratio_histogram.png'
 
     fig, ax = plt.subplots(figsize=(9,6))
-    plot_massratio_histogram(ax, simdir, path_galacticus, label='NSphere (Not Finalized)')
+    plot_massratio_histogram(ax, simdir, path_galacticus, label='T1DES')
+    plot_massratio_histogram(ax, simdir, path_galacticus, label='T1DES (Direct Infallers)', only_direct_infallers=True)
 
     plt.xscale('log')
     plt.legend()

@@ -1,11 +1,29 @@
 import numpy as np
 from sidmcommon.const import Const
+from sidmcommon.particles import get_bound_mass_allparticles, get_bound_mass_snap
+from sidmcommon.nsphere import get_total_energy_snap
 
-def _vc2_profile(snap):
+
+def get_indexes_bound_particles(snap):
+    """Return the rank of bound particles in a snapshot."""
+    e = get_total_energy_snap(snap)    
+    return np.where(e < 0)[0]
+
+def get_mass_bound_profile_snap(snap):
+    index_bound = get_indexes_bound_particles(snap)
+    mass_bound = np.linspace(0, 1, index_bound.shape[0]) * get_bound_mass_snap(snap)
+    return mass_bound, snap['R'][index_bound]
+
+def get_nsphere_vcirc_profile(snap, bound_only=True):
     """Squared circular velocity profile for a single snapshot."""
-    radii = snap['R']         # kpc
-    m_enc = snap['mass']      # M☉, cumulative (rank-ordered by R)
-    return Const.G_KPC_MYR * m_enc / radii  # (kpc/Myr)²
+    if bound_only:
+        m, r = get_mass_bound_profile_snap(snap)
+    else:
+        m = snap['mass']
+        r = snap['R']
+    print(Const.G_KPC_MYR)
+    
+    return np.sqrt(Const.G_KPC_MYR * m / r), r
 
 
 def get_nsphere_vmax(data):
@@ -26,7 +44,7 @@ def get_nsphere_vmax(data):
     """
     vmax = np.zeros(len(data))
     for isnap, snap in enumerate(data):
-        vmax[isnap] = np.sqrt(np.max(_vc2_profile(snap)))
+        vmax[isnap] = np.max(get_nsphere_vcirc_profile(snap)[0])
     return vmax
 
 
@@ -46,8 +64,8 @@ def get_nsphere_rmax(data):
     """
     rmax = np.zeros(len(data))
     for isnap, snap in enumerate(data):
-        vc2 = _vc2_profile(snap)
-        rmax[isnap] = snap['R'][np.argmax(vc2)]
+        vc, r = get_nsphere_vcirc_profile(snap)
+        rmax[isnap] = r[np.argmax(vc)]
     return rmax
 
 

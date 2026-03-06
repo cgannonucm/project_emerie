@@ -116,7 +116,7 @@ if __name__ == '__main__':
     with h5py.File(gal_file, 'r') as gout:
         for ax, halo_id in zip(axes.flatten(), halo_ids):
             plot_masshistory_galacticus(ax, gout, halo_id, cosmo)
-            plot_masshistory_nsphere(ax, nsphere_dir, halo_id, nsphere_cachedir)
+            plot_masshistory_nsphere(ax, nsphere_dir, halo_id, nsphere_cachedir, refresh=True)
 
             ax.set_yscale('log')
             ax.set_ylim(5e-4, 1.1)

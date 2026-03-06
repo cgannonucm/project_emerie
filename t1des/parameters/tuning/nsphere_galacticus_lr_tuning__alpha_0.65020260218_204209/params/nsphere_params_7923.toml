@@ -1,0 +1,13 @@
+save = "raw-data"
+halo-mass = "2.68e+09"
+scale-radius = "2.94e+00"
+falloff-factor = "4.57e+00"
+cutoff-factor = "9.14e+00"
+profile = "nfw"
+nparticles = 10164
+tfinal = 117
+ntimesteps = 234000
+nout = 100
+dtwrite = 2341
+master-seed = 42
+tidalf-file = "params/nsphere_galacticus_lr_tuning__alpha_0.65020260218_204209/tidalf/tidalf_7923.bin"

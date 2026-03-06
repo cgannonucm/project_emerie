@@ -37,8 +37,9 @@ def get_angular_momentum(galacticus_hdf5, halo_ids, snapshot='initial'):
     halo_ids : list of int
         Node indices of the subhalos.
     snapshot : str
-        Which snapshot to use: 'initial' (infall, last element) or
-        'final' (present day, first element).
+        Which snapshot to use: 'initial' (infall, last element),
+        'final' (present day, first element), or 'average' (mean |L|
+        over all snapshots).
 
     Returns
     -------
@@ -47,8 +48,6 @@ def get_angular_momentum(galacticus_hdf5, halo_ids, snapshot='initial'):
     """
     ts_data = subhalo_timeseries_summary(galacticus_hdf5, tree_index=0)
 
-    idx = -1 if snapshot == 'initial' else 0
-
     result = {}
     for halo_id in halo_ids:
         if halo_id not in ts_data:
@@ -56,18 +55,32 @@ def get_angular_momentum(galacticus_hdf5, halo_ids, snapshot='initial'):
 
         data = ts_data[halo_id]['data']
 
-        pos = np.array([
-            data['satellitePositionX'][idx],
-            data['satellitePositionY'][idx],
-            data['satellitePositionZ'][idx],
-        ])
-        vel = np.array([
-            data['satelliteVelocityX'][idx],
-            data['satelliteVelocityY'][idx],
-            data['satelliteVelocityZ'][idx],
-        ])
+        if snapshot == 'average':
+            pos = np.column_stack([
+                data['satellitePositionX'],
+                data['satellitePositionY'],
+                data['satellitePositionZ'],
+            ])
+            vel = np.column_stack([
+                data['satelliteVelocityX'],
+                data['satelliteVelocityY'],
+                data['satelliteVelocityZ'],
+            ])
+            L_mag = np.mean(np.linalg.norm(np.cross(pos, vel), axis=1))
+        else:
+            idx = -1 if snapshot == 'initial' else 0
+            pos = np.array([
+                data['satellitePositionX'][idx],
+                data['satellitePositionY'][idx],
+                data['satellitePositionZ'][idx],
+            ])
+            vel = np.array([
+                data['satelliteVelocityX'][idx],
+                data['satelliteVelocityY'][idx],
+                data['satelliteVelocityZ'][idx],
+            ])
+            L_mag = np.linalg.norm(np.cross(pos, vel))
 
-        L_mag = np.linalg.norm(np.cross(pos, vel))
         result[halo_id] = L_mag
 
     return result
@@ -160,14 +173,14 @@ if __name__ == '__main__':
 
     with h5py.File(gal_file, 'r') as gout:
         plot_angular_momentum_vs_massratio(axes[0], gout, nsphere_dir,
-                                           snapshot='initial',
+                                           snapshot='average',
                                            nsphere_cachefile=nsphere_cachefile)
         plot_angular_momentum_vs_massratio(axes[1], gout, nsphere_dir,
                                            snapshot='final',
                                            nsphere_cachefile=nsphere_cachefile)
 
-    axes[0].set_title('Initial (Infall)')
-    axes[1].set_title('Final (Present Day)')
+    axes[0].set_title('Average')
+    axes[1].set_title('Final')
 
     for ax in axes:
         ax.set_xscale('log')
